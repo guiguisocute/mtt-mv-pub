@@ -106,9 +106,8 @@ MV.sections.push(function () {
 
   // ---------------------------------------------------------------- scene
   let mttCanvas = null;
-  // the ratings panel on the screen while the eye is in the soul (same graph as the stage HUD;
-  // portrait: the screen HUD carries the board all the time)
-  if (!MV.PORTRAIT) TL.add({
+  // the ratings panel on the screen while the eye is in the soul (same graph as the stage HUD)
+  TL.add({
     t0: p0, t1: p1, z: 83, screen: true,
     draw(ctx, emi, t) {
       const k = U.clamp((t - p0) / 0.3) * U.clamp((p1 - t) / 0.2), n = 42, hist = [];
@@ -243,8 +242,7 @@ MV.sections.push(function () {
     TL.add({
       t0: t - SWING / 2, t1: t + SWING / 2 + FADE, z: 80, screen: true,
       draw(ctx, emi, tt) {
-        // (portrait: the first-person view is widened by TL.pcam k on a screen twice as tall)
-        const c = cam.at(t), k = 9.3 * (1.25 / c.fov) * (MV.PORTRAIT ? (MV.SH / 540) * TL.pcam.at(t).k : 1);
+        const c = cam.at(t), k = 9.3 * (1.25 / c.fov);
         const sx = MV.SW / 2 + (n.x - c.x) * k, sy = MV.SH / 2 - (n.z - c.z) * k;
         const a = ANG[dir] + c.roll, L2 = big ? 200 : 165, bow = (big ? 30 : 22) * (n.lane % 2 ? 1 : -1);
         // local frame: the swing runs from v = +L2 to v = -L2 (rotated into the cut direction)

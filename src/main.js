@@ -10,11 +10,10 @@
   function start() {
   MV.buildTimeline();
   TL.finalize();
-  if (MV.PORTRAIT) MV.H.framePortrait(T.cut.t0, T.cut.t1);
   const canvas = document.getElementById('mv');
   const scene = (MV.scene = new MV.Scene());
   const post = new MV.Post(canvas);
-  const size3D = MV.PORTRAIT ? [270, 480] : [480, 270];
+  const size3D = [480, 270];
   const voxel = new MV.Voxel(post.gl, size3D[0], size3D[1]);
   const cut = T.cut;
 
@@ -26,19 +25,11 @@
     const vhs = TL.vhsAt(tReal);
     const pov = TL.pov && t >= TL.pov.t0 && t < TL.pov.t1 ? TL.pov : null;
     const S = scene.render(t, !!pov);
-    // portrait: the 16:9-authored camera is widened by k (and nudged by dx / dy / fy)
-    const pc = MV.PORTRAIT ? TL.pcam.at(t) : null;
     let tex3D = null;
-    if (pov) {
-      const sc = pov.scene(t);
-      // same widening in first person: scale the vertical field of view like the 2D zoom
-      if (pc) sc.cam.fov = 2 * Math.atan(Math.tan((sc.cam.fov || 1.25) / 2) / pc.k);
-      tex3D = voxel.render(sc);
-    }
+    if (pov) tex3D = voxel.render(pov.scene(t));
     const P = S.post, fx = S.fx;
     const env = T.env(t, 'rms');
-    let cam = S.cam;
-    if (pc) { const z = cam.zoom * pc.k; cam = Object.assign({}, cam, { zoom: z, x: cam.x + pc.dx, y: cam.y + pc.dy + (pc.fy * MV.VH) / z }); }
+    const cam = S.cam;
     // motion smear from camera velocity (keyframed camera only: shake must not smear)
     let smear = [0, 0];
     const c1 = TL.cam.at(t), c0 = TL.cam.at(t - 1 / 60);
@@ -65,11 +56,11 @@
     }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const vw = window.innerWidth, vh = window.innerHeight;
-    const ar = MV.PORTRAIT ? 9 / 16 : 16 / 9;
+    const ar = 16 / 9;
     const w = Math.min(vw, vh * ar);
     canvas.style.width = w + 'px';
     canvas.style.height = w / ar + 'px';
-    canvas.width = Math.min(MV.PORTRAIT ? 1080 : 1920, Math.round(w * dpr));
+    canvas.width = Math.min(1920, Math.round(w * dpr));
     canvas.height = Math.round(canvas.width / ar);
   }
   resize();

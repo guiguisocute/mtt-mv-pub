@@ -89,14 +89,5 @@
     return A.sections[A.sections.length - 1];
   };
 
-  // ------------------------------------------------------------ cuts / output format
-  // ?cut=tiktok: the vertical version. It keeps the whole film (prologue, 83 bars, curtain
-  // call) and the same soundtrack; only the picture is reframed to 9:16 (TL.pcam, the portrait
-  // HUD, src/tl_tiktok.js). Portrait framing follows the output aspect (render: w < h; live
-  // player: ?portrait=1, on by default for the TikTok cut).
-  const q = new URLSearchParams(location.search);
-  MV.CUT = q.get('cut') || '';
-  MV.TIKTOK = MV.CUT === 'tiktok';
-  MV.PORTRAIT = q.has('render') ? +(q.get('w') || 1920) < +(q.get('h') || 1080) : (q.get('portrait') ?? (MV.TIKTOK ? '1' : '0')) === '1';
   T.cut = { t0: 0, t1: T.end };
 })();

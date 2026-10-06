@@ -5,8 +5,6 @@
 //   node tools/render.cjs [options]
 //
 // Options (all optional):
-//   --cut=tiktok                     the vertical version (1080x1920): the whole film reframed to 9:16,
-//                                    same soundtrack
 //   --fps=60 --w=1920 --h=1080       output format
 //   --t0=0 --t1=178.6                time range in seconds (default: the whole video)
 //   --limit                          look-ahead peak limiter on the mix instead of scaling the whole
@@ -29,10 +27,8 @@ const fs = require('fs');
 const ROOT = path.resolve(__dirname, '..');
 const opt = Object.fromEntries(process.argv.slice(2).map((a) => { const [k, ...v] = a.replace(/^--/, '').split('='); return [k, v.length ? v.join('=') : true]; }));
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
-const CUT = opt.cut && opt.cut !== true ? opt.cut : '';
-const VERTICAL = CUT === 'tiktok';
-const FPS = +(opt.fps || 60), W = +(opt.w || (VERTICAL ? 1080 : 1920)), H = +(opt.h || (VERTICAL ? 1920 : 1080)), WORKERS = +(opt.workers || 2);
-const OUT = path.resolve(ROOT, opt.out || (CUT ? `dist/mv_${CUT}_${W}x${H}_${FPS}.mp4` : `dist/mv_${H}p${FPS}.mp4`));
+const FPS = +(opt.fps || 60), W = +(opt.w || 1920), H = +(opt.h || 1080), WORKERS = +(opt.workers || 2);
+const OUT = path.resolve(ROOT, opt.out || `dist/mv_${H}p${FPS}.mp4`);
 const LIMIT = opt.limit !== undefined && opt.limit !== '0';
 const TMP = path.join(ROOT, 'dist', '.tmp');
 const VCODEC = opt.vcodec || 'libx264';
@@ -52,7 +48,7 @@ fs.mkdirSync(TMP, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 const ARGS = opt.gpu ? ['--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--enable-zero-copy', '--allow-file-access-from-files'] : SWIFT;
-const QUERY = `?render=1&w=${W}&h=${H}` + (CUT ? `&cut=${CUT}` : '');
+const QUERY = `?render=1&w=${W}&h=${H}`;
 
 async function openPage() {
   const browser = await chromium.launch({ args: ARGS, headless: !opt.headful, channel: opt.channel || undefined });
@@ -194,7 +190,7 @@ async function worker(id, f0, f1) {
   if (opt.frames) fs.mkdirSync(opt.frames, { recursive: true });
   mixAudio(info.sfx, wav, { pre: info.pre, dur: Math.max(info.end, t1), limit: LIMIT, fadeIn: t0 });
   if (opt['audio-only']) return;
-  console.log(`rendering ${F1 - F0} frames (${t0}s-${t1}s) at ${W}x${H}@${FPS}, ${WORKERS} workers, ${opt.gpu ? 'GPU' : 'SwiftShader'}${CUT ? ', cut=' + CUT : ''}`);
+  console.log(`rendering ${F1 - F0} frames (${t0}s-${t1}s) at ${W}x${H}@${FPS}, ${WORKERS} workers, ${opt.gpu ? 'GPU' : 'SwiftShader'}`);
   const per = Math.ceil((F1 - F0) / WORKERS), jobs = [];
   for (let i = 0; i < WORKERS; i++) {
     const a = F0 + i * per, b = Math.min(F1, a + per);

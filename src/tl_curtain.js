@@ -24,8 +24,7 @@ MV.sections.push(function () {
   const PH = [ex + 104, ey - 120];
   const ghost = (lines, o = {}) => {
     const n = [...lines.join('')].length, step = o.step ?? 0.07, t0 = tc + (o.pause ?? 0.08), t1 = t0 + n * step + (o.hold ?? 0.6 + n * 0.018);
-    // (beside the phone; the tall portrait frame has it over his head instead)
-    const w = w1(lines), [x, y] = MV.PORTRAIT ? [480 - w / 2 + 20, 20 - lines.length * 9] : [Math.min(622, 800 - w), 104];
+    const w = w1(lines), [x, y] = [Math.min(622, 800 - w), 104];
     H.bubble(t0, t1, lines, { x, y, tx: 606, ty: 150, step, jagged: true, voice: 'Txt1', vol: 0.25, every: 2 });
     tc = t1 + 0.08;
     return [t0, t1];
@@ -75,15 +74,14 @@ MV.sections.push(function () {
   H.cam(tc, tc + 0.35, { x: 480, y: 214, zoom: 1.12 }, 'outExpo');
   H.punch(tc, 0.5);
   say(['不，等等！', '我再接一个电话！！'], { step: 0.04 });
-  // (spread round him clear of each other, the ratings board and the menu box; the tall
-  // portrait frame stacks them above him instead)
+  // (spread round him clear of each other, the ratings board and the menu box)
   const tF = tc, CALLS = [
-    [['镁塔顿，', '你的节目……'], [410, 8], [260, -35]],
-    [['镁塔顿，你走了之后', '我就不知道要怎么……'], [610, 28], [455, 0]],
-    [['镁塔顿，', '我镁塔顿形状的', '心中空缺了一个', '镁塔顿形状的洞。'], [620, 150], [280, 150]],
+    [['镁塔顿，', '你的节目……'], [410, 8]],
+    [['镁塔顿，你走了之后', '我就不知道要怎么……'], [610, 28]],
+    [['镁塔顿，', '我镁塔顿形状的', '心中空缺了一个', '镁塔顿形状的洞。'], [620, 150]],
   ];
-  CALLS.forEach(([lines, pl, pp], i) => {
-    const [x, y] = MV.PORTRAIT ? pp : pl;
+  CALLS.forEach(([lines, pl], i) => {
+    const [x, y] = pl;
     const t = tF + i * 0.32;
     H.sfx(t, 'Phone', 0.38 + 0.08 * i);
     H.punch(t, 0.35);

@@ -104,7 +104,7 @@ MV.sections.push(function () {
   // notes scroll right to left into the drum face on the left: blue rim (KA, his call),
   // red face (DON, the soul's answer); the face flashes and the judgement pops on each
   H.taiko = (t0, t1, notes) => {
-    const Y = MV.PORTRAIT ? MV.PTOP + 186 : 70, X0 = MV.PORTRAIT ? 70 : 200, W = MV.PORTRAIT ? MV.SW - X0 : 720, SPEED = 300 / BEAT; // px per second
+    const Y = 70, X0 = 200, W = 720, SPEED = 300 / BEAT; // px per second
     notes.forEach((n) => H.sfx(n.t, n.don ? 'TaikoDon' : 'TaikoKa', n.don ? 0.5 : 0.42));
     TL.add({
       t0, t1, z: 84, screen: true,

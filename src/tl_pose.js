@@ -539,7 +539,7 @@ MV.sections.push(function () {
   // the essay (bars 38-39): his question fills the screen, the soul "writes" its answer with
   // shots, the grade lands, and TIME'S UP on the last beat before the climax
   H.essay = (t0, t1) => {
-    const at = T.at, PW = MV.PORTRAIT ? 480 : 660, PH = 250, PX = (MV.SW - PW) / 2, PY = MV.PORTRAIT ? 250 : 70, CXs = MV.SW / 2, CYs = PY + PH / 2;
+    const at = T.at, PW = 660, PH = 250, PX = (MV.SW - PW) / 2, PY = 70, CXs = MV.SW / 2, CYs = PY + PH / 2;
     const q1 = '论文标题：', q2 = '你最喜欢镁塔顿哪一点？';
     const tAns = at(38, 3), tGrade = at(39, 1), tUp = at(39, 3);
     TL.add({
@@ -561,7 +561,7 @@ MV.sections.push(function () {
         }
         if (t >= tGrade) {
           const k = U.eOutBack(U.clamp((t - tGrade) / 0.12));
-          ctx.save(); ctx.globalAlpha = fade; ctx.translate(PX + PW - (MV.PORTRAIT ? 86 : 110), PY + 150); ctx.rotate(-0.25); ctx.scale(k, k);
+          ctx.save(); ctx.globalAlpha = fade; ctx.translate(PX + PW - 110, PY + 150); ctx.rotate(-0.25); ctx.scale(k, k);
           D.rect(ctx, -70, -34, 140, 68, '#ff2030'); D.rect(ctx, -64, -28, 128, 56, '#ffffff');
           D.text(ctx, '满分！', 0, -16, { scale: 2, color: '#ff2030', align: 'center' });
           ctx.restore();

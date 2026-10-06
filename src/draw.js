@@ -6,10 +6,7 @@
   const D = (MV.D = {});
   MV.VW = 960; MV.VH = 540;
   MV.PADX = 240; MV.PADY = 135; // world canvas margin around the default view
-  [MV.SW, MV.SH] = MV.PORTRAIT ? [540, 960] : [960, 540];
-  // portrait safe area (screen px): overlays start below the app's top bar (PTOP); focus targets
-  // stay between the bottom of the screen HUD and the top of the caption area (PSAFE)
-  MV.PTOP = 76; MV.PSAFE = [218, 770];
+  [MV.SW, MV.SH] = [960, 540];
   MV.ART_SCALE = 2;
 
   const tmp = (w, h) => {

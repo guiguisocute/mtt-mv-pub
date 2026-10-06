@@ -170,8 +170,7 @@
         if (bs.a <= 0.001) continue;
         D.button(ctx, emi, i, L.btnX[i] + (bs.dx || 0), L.btnY + (bs.dy || 0), { a: bs.a, sel: bs.sel });
       }
-      // ratings graph (in the world, where the game draws it; portrait: on the screen, drawTV)
-      if (!MV.PORTRAIT) this.drawRating(ctx, emi, S, t, L.rating[0] + S.rating.dx, L.rating[1] + S.rating.dy);
+      this.drawRating(ctx, emi, S, t, L.rating[0] + S.rating.dx, L.rating[1] + S.rating.dy);
     }
     drawRating(ctx, emi, S, t, x, y) {
       const r = S.rating;
@@ -205,15 +204,9 @@
       D.soul(ctx, emi, s.x, s.y, { col: S.soulCol, rot: s.rot, scale: s.sc, sq: s.sq, alpha: s.a, aura: S.aura, t });
     }
     // broadcast graphics on the screen overlay: LIVE tally, REC, a rating ticker, the combo counter.
-    // Portrait: everything sits below the app's top bar (PTOP) and the ratings board joins them.
     drawTV(S, t) {
       const c = this.sctx, tv = TL.tv.at(t);
-      const pad = 18, top = MV.PORTRAIT ? MV.PTOP : pad;
-      if (MV.PORTRAIT && S.rating.a > 0.001) {
-        const ra = S.rating.a;
-        D.rect(c, pad - 4, top - 6 + S.rating.dy, 184, 142, '#000000', 0.45 * ra);
-        this.drawRating(c, null, S, t, pad + 12, top + S.rating.dy);
-      }
+      const pad = 18, top = pad;
       if (tv.a <= 0.001) return;
       const a = tv.a;
       // LIVE tally
@@ -223,7 +216,7 @@
       D.text(c, 'LIVE', MV.SW - pad - 70, top + 6, { scale: 1, alpha: a, color: '#ffffff' });
       D.text(c, tv.cam || 'CAM 1', MV.SW - pad - 88, top + 34, { scale: 1, alpha: a * 0.8, color: '#c8c8c8' });
       if (tv.combo > 0.5) {
-        const k = U.clamp(1 - (t - TL.comboAt(t)) / 0.2), cx = MV.SW - pad - (MV.PORTRAIT ? 94 : 120), cy = MV.PORTRAIT ? top + 64 : MV.SH - pad - 70;
+        const k = U.clamp(1 - (t - TL.comboAt(t)) / 0.2), cx = MV.SW - pad - 120, cy = MV.SH - pad - 70;
         D.text(c, 'COMBO', cx, cy, { scale: 1, alpha: a, color: MV.COL.pink });
         D.text(c, '×' + R(tv.combo), cx, cy + 18, { scale: 2 + (k > 0.5 ? 1 : 0), alpha: a, color: '#ffffff', outline: '#000000' });
       }

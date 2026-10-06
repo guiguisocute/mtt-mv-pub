@@ -8,13 +8,6 @@
 
   // ---------------------------------------------------------------- tracks
   TL.cam = new Track({ x: 480, y: 270, zoom: 1, roll: 0, pitch: 0, yaw: 0 });
-  // portrait framing on top of the (16:9-authored) camera: zoom factor k, world offsets dx / dy,
-  // and fy = shift as a fraction of the view height (+ lifts the picture, - drops it)
-  TL.pcam = new Track({ k: 0.6, dx: 0, dy: 0, fy: 0 });
-  // things the portrait framing must keep in shot: {t0, t1, rect(t) -> [x0, y0, x1, y1]}; and
-  // moments it must treat as a cut (besides the camera's own)
-  TL.focus = [];
-  TL.frameCuts = [];
   TL.box = new Track(Object.assign({ draw: 1, alpha: 1, fill: 1, th: 5, glow: 1 }, L.box));
   TL.soul = new Track({ x: 480, y: 350, rot: Math.PI, sc: 1, sq: 1, a: 0 });
   TL.soulCol = new Steps('yellow');
@@ -69,9 +62,6 @@
   H.punch = (t, k = 1, o = {}) => TL.impact(t, Object.assign({ amp: 3 * k, zoom: 0.035 * k, ca: 1.6 * k, dur: 0.25 }, o));
   H.hit = (t, k = 1, o = {}) => TL.impact(t, Object.assign({ amp: 9 * k, zoom: 0.06 * k, ca: 5 * k, flash: 0.22 * k, dur: 0.45 }, o));
   H.bigHit = (t, o = {}) => TL.impact(t, Object.assign({ amp: 18, zoom: 0.12, ca: 14, flash: 0.9, inv: 0.05, bw: 0.034, rot: 0.03, dur: 0.7 }, o));
-
-  // keep a world rect in the portrait frame over [t0, t1] (rect: [x0, y0, x1, y1] or a function of t)
-  H.focus = (t0, t1, rect) => { if (MV.PORTRAIT) TL.focus.push({ t0, t1, rect: typeof rect === 'function' ? rect : () => rect }); };
 
   // ---------------------------------------------------------------- soul helpers
   H.soulTo = (t0, t1, x, y, ease = 'outExpo', extra = {}) => TL.soul.to(t0, t1, Object.assign({ x, y }, extra), ease);
@@ -193,15 +183,6 @@
       const v = o.voice === 'mtt' ? voice(tt * 13.7) : o.voice || 'BattleText';
       H.sfx(tt, v, o.vol ?? 0.3);
     });
-    if (!o.screen) {
-      // (portrait: the whole line, from its first letter, stays in shot)
-      const sc = o.scale || 2, full = D.textWidth(str, { scale: sc }), w = o.wrap ? Math.min(o.wrap, full) : full, rows = o.wrap ? Math.ceil(full / o.wrap) : 1;
-      H.focus(t0, t1, (t) => {
-        const x = typeof o.x === 'function' ? o.x(t) : o.x ?? L.menuBox.x + 26, y = typeof o.y === 'function' ? o.y(t) : o.y ?? L.menuBox.y + 22;
-        const x0 = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
-        return [x0 - 4, y - 4, x0 + w + 4, y + rows * 18 * sc];
-      });
-    }
     return TL.add({
       t0, t1, z: o.z ?? 30, screen: o.screen,
       draw(ctx, emi, t) {
@@ -231,12 +212,8 @@
     const sc = o.scale || 1;
     const w = o.w || Math.max(...lines.map((l) => D.textWidth(l, { scale: sc }))) + 20 * sc;
     const h = o.h || lines.length * 18 * sc + 14 * sc;
-    // portrait: a bubble beside him is pulled in toward the centre so the narrow frame holds it
-    // (a phone-call bubble's spiky ellipse reaches well past its text box)
-    const mx = o.jagged ? w * 0.19 + 4 : 4, my = o.jagged ? h * 0.35 + 4 : 4;
-    const bx = (t) => { const x = typeof o.x === 'function' ? o.x(t) : o.x; return MV.PORTRAIT && !o.screen ? U.clamp(x, 480 - 240 + mx, Math.max(480 - 240 + mx, 480 + 240 - w - mx)) : x; };
+    const bx = (t) => (typeof o.x === 'function' ? o.x(t) : o.x);
     const by = (t) => (typeof o.y === 'function' ? o.y(t) : o.y);
-    if (!o.screen) H.focus(t0, t1, (t) => [bx(t) - mx, by(t) - my, bx(t) + w + mx, by(t) + h + my]);
     return TL.add({
       t0, t1, z: o.z ?? 58, screen: o.screen,
       draw(ctx, emi, t) {
@@ -255,67 +232,6 @@
   };
   // a line of dialogue box narration ("* ...") typed in the menu box
   H.narrate = (t0, t1, str, o = {}) => H.say(t0, t1, str, Object.assign({ step: T.s16 / 2 }, o));
-
-  // ---------------------------------------------------------------- portrait framing
-  // A vertical frame is far narrower than the 16:9 one the camera was authored for. For every
-  // moment of [t0, t1] this measures how far the hand-set portrait view (TL.cam + TL.pcam) would
-  // have to open up to hold every live focus rect and the soul, then eases that in (quickly, a
-  // moment early) and out (slowly), and bakes the result into TL.pcam (k, dx). Where nothing is
-  // missing the view is left exactly as it was. "In shot" means inside
-  // the app's safe area: below the top bar - and below the screen HUD while it is up - and above
-  // the caption area (MV.PSAFE).
-  H.framePortrait = (t0, t1) => {
-    const dt = 1 / 60, n = Math.ceil((t1 - t0) / dt) + 1, LEAD = 6, ATT = 2500 * dt, REL = 350 * dt;
-    const aspect = 1080 / 1920, P = 8;
-    const eL = new Float32Array(n), eR = new Float32Array(n), eV = new Float32Array(n);
-    const base = [];
-    const focus = TL.focus.slice().sort((a, b) => a.t0 - b.t0);
-    for (let i = 0; i < n; i++) {
-      const t = t0 + i * dt, c = TL.cam.at(t), p = TL.pcam.at(t);
-      const z = c.zoom * p.k, hw = (MV.VH * aspect) / z / 2, hh = MV.VH / z / 2;
-      const cx = c.x + p.dx, cy = c.y + p.dy + (p.fy * MV.VH) / z;
-      base.push([c, p, cx, hw]);
-      let l = Infinity, r = -Infinity, top = Infinity, bot = -Infinity;
-      const add = (x0, y0, x1, y1) => { l = Math.min(l, x0); r = Math.max(r, x1); top = Math.min(top, y0); bot = Math.max(bot, y1); };
-      for (const f of focus) {
-        if (f.t0 > t) break;
-        if (t > f.t1) continue;
-        const [x0, y0, x1, y1] = f.rect(t);
-        add(x0 - P, y0 - P, x1 + P, y1 + P);
-      }
-      const s = TL.soul.at(t);
-      if (s.a > 0.5 && !(TL.pov && t >= TL.pov.t0 && t < TL.pov.t1)) add(s.x - 24, s.y - 24, s.x + 24, s.y + 24);
-      if (l === Infinity) continue;
-      const hud = TL.rating.at(t).a > 0.01 || TL.tv.at(t).a > 0.01;
-      const fTop = 1 - (2 * (hud ? MV.PSAFE[0] : MV.PTOP)) / MV.SH, fBot = 1 - (2 * (MV.SH - MV.PSAFE[1])) / MV.SH;
-      eL[i] = Math.max(0, cx - hw - l);
-      eR[i] = Math.max(0, r - (cx + hw));
-      eV[i] = Math.max(0, Math.max((cy - top) / fTop, (bot - cy) / fBot) - hh) * aspect;
-    }
-    // ease: open a moment early and fast, close slowly - but never across a cut (a camera cut, or a
-    // hard change a section marked in TL.frameCuts): there the framing changes with the picture
-    const cutAt = new Uint8Array(n); // cutAt[i]: a cut falls between sample i-1 and i
-    for (const tc of TL.cam.segs.filter((g) => g.t1 === g.t0).map((g) => g.t0).concat(TL.frameCuts)) {
-      const i = Math.ceil((tc - t0) / dt - 1e-9);
-      if (i > 0 && i < n) cutAt[i] = 1;
-    }
-    const ease = (e) => {
-      const a = new Float32Array(n);
-      for (let i = 0; i < n; i++) { let m = e[i]; for (let j = i + 1; j < Math.min(n, i + LEAD) && !cutAt[j]; j++) m = Math.max(m, e[j]); a[i] = m; }
-      for (let i = 1; i < n; i++) if (!cutAt[i]) a[i] = Math.max(a[i], a[i - 1] - REL);
-      for (let i = n - 2; i >= 0; i--) if (!cutAt[i + 1]) a[i] = Math.max(a[i], a[i + 1] - ATT);
-      return a;
-    };
-    const L2 = ease(eL), R2 = ease(eR), V2 = ease(eV);
-    const K = [], DX = [];
-    for (let i = 0; i < n; i++) {
-      const [c, p, cx, hw] = base[i];
-      const l = cx - hw - L2[i] - V2[i], r = cx + hw + R2[i] + V2[i];
-      K.push(+(((MV.VH * aspect) / (r - l)) / c.zoom).toFixed(4));
-      DX.push(+((l + r) / 2 - c.x).toFixed(2));
-    }
-    TL.pcam.bake(t0, dt, { k: K, dx: DX });
-  };
 
   // ---------------------------------------------------------------- particles / fx
   H.confetti = (t, x, y, o = {}) =>

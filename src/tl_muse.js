@@ -257,7 +257,7 @@ MV.sections.push(function () {
       t0, t1, z: 85, screen: true,
       draw(ctx, emi, t) {
         const k = U.clamp((t - t0) / 0.3) * U.clamp((t1 - t) / 0.3), fill = U.clamp((t - t0) / (tFever - t0));
-        const w = 360, x = MV.PORTRAIT ? 58 : 300, y = MV.PORTRAIT ? MV.PTOP + 150 : 18, on = t >= tFever;
+        const w = 360, x = 300, y = 18, on = t >= tFever;
         D.rect(ctx, x - 3, y - 3, w + 6, 20, '#000000', 0.7 * k);
         const col = on ? ['#ff4fd8', '#ffe24a', '#3ee0ff'][Math.floor(t * 12) % 3] : '#ff4fd8';
         D.rect(ctx, x, y, w * fill, 14, col, k);

@@ -438,7 +438,7 @@ MV.sections.push(function () {
       draw(ctx, emi, t) {
         const pop = U.eOutBack(U.clamp((t - t0) / 0.25)), fade = U.clamp((t1 - t) / 0.4);
         const RW = 60, RH = 84, GAP = 10, W = 5 * RW + 4 * GAP + 40, H2 = RH + 70;
-        const cx = MV.SW / 2, cy = MV.PORTRAIT ? MV.PTOP + 190 : 150;
+        const cx = MV.SW / 2, cy = 150;
         ctx.save(); ctx.globalAlpha = fade; ctx.translate(cx, cy); ctx.scale(pop, pop); ctx.translate(-cx, -cy);
         const x0 = cx - W / 2, y0 = cy - H2 / 2;
         const done = t >= stops[4];

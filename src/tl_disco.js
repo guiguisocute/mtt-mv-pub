@@ -439,7 +439,6 @@ MV.sections.push(function () {
   // the stats card (CHECK)
   H.statsCard = (t0, t1) => {
     const MB = MV.LAYOUT.menuBox;
-    H.focus(t0, t1, [MB.x + 20, MB.y + 14, MB.x + 26 + D.textWidth('* 镁塔顿 EX - 攻击 47 防御 47'), MB.y + 124]);
     return TL.add({
       t0, t1, z: 30,
       draw(ctx, emi, t) {

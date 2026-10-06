@@ -1,4 +1,4 @@
-// Validate choreography: node tools/check.cjs [t0] [t1] [--cut=tiktok]
+// Validate choreography: node tools/check.cjs [t0] [t1]
 //  * no white attack ever touches the soul (blue: only while still, orange: only while moving)
 //  * perfect route: FIGHT is never selected, HP stays 20 / 20
 //  * first person: no obstacle reaches the camera
@@ -7,12 +7,11 @@ const { chromium, pageUrl, SWIFT } = require('./pw.cjs');
 (async () => {
   const argv = process.argv.slice(2);
   const [t0 = '0', t1 = ''] = argv.filter((a) => !a.startsWith('--'));
-  const cut = (argv.find((a) => a.startsWith('--cut=')) || '').slice(6);
   const browser = await chromium.launch({ args: SWIFT });
   const page = await browser.newPage({ viewport: { width: 320, height: 180 } });
   page.on('pageerror', (e) => console.log('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('[console]', m.text()); });
-  await page.goto(pageUrl(cut === 'tiktok' ? '?render=1&w=180&h=320&cut=tiktok' : '?render=1&w=320&h=180' + (cut ? `&cut=${cut}` : '')));
+  await page.goto(pageUrl('?render=1&w=320&h=180'));
   await page.waitForFunction(() => window.MV && window.MV.ready, null, { timeout: 60000 });
   const hits = await page.evaluate(([a, b]) => window.MV.checkHits(+a, b ? +b : window.MV.T.end), [t0, t1]);
   console.log(hits.length ? `soul: ${hits.length} collisions` : 'OK: no collisions');

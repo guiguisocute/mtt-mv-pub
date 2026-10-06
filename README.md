@@ -20,7 +20,7 @@ node tools/serve.cjs 4173 dist/site  # 预览发布包
 - `←` `→`：快退 / 快进 2 秒（按住 Shift 为 1 小节）
 - `D`：显示时间 / 小节 / 段落 / 收视率
 - 点击底部进度条跳转
-- URL 参数：`?t=40` 从 40 秒开始；`?lat=0.03` 调整画面与声音的延迟校准；`?cut=tiktok` 播放竖屏版
+- URL 参数：`?t=40` 从 40 秒开始；`?lat=0.03` 调整画面与声音的延迟校准
 
 ## 导出成片
 
@@ -34,26 +34,11 @@ npx playwright install chromium
 ```sh
 node tools/render.cjs --gpu --vcodec=h264_nvenc --workers=2
 # → dist/mv_1080p60.mp4（1920×1080 60fps，已混入音效）
-
-node tools/render.cjs --cut=tiktok --gpu --vcodec=h264_nvenc --workers=3
-# → dist/mv_tiktok_1080x1920_60.mp4
 ```
 
 不加 `--gpu` 时用 SwiftShader（纯 CPU）。`--frames=dist/frames` 只写 JPEG 帧和 `dist/mix.wav`，之后自己用 ffmpeg 编码。其余参数（`--fps --w --h`、`--t0 / --t1`、`--vcodec / --vopts`、`--channel=chrome`、`--headful`、`--audio-only`）见 `tools/render.cjs` 文件头；环境变量 `FFMPEG` 指定 ffmpeg 路径。
 
 混音：`music.mp3` 从 T.pre（14 秒，序幕结束）开始，前面的序幕和后面 30 秒的谢幕只有音效；音乐压低 4 dB 给音效留余量，只在总和削波时整体下调，`--limit` 改用前视峰值限制器。
-
-## 竖屏版（`?cut=tiktok`）
-
-1080×1920 60fps，全片保留（序幕 → 83 小节 → 谢幕，178.6 秒），声音和 16:9 版相同，按竖屏重新取景。
-
-- **竖屏取景**：16:9 编排的镜头在竖屏里按 `TL.pcam` 放宽（默认 k = 0.6）。第一人称体素段（40–47）按同一个 k 换算纵向视场角。
-- **自动补位**：必须完整出现在画面里的东西登记在 `TL.focus` 里（菜单旁白、台词气泡、「查看」数据卡、黄心）。`H.framePortrait` 逐帧算出竖屏视野还差多少，提前拉开 / 平移，过后再收回，结果写入 `TL.pcam`。安全区：顶栏以下（HUD 在场时是 HUD 以下）、底部文案区以上（`MV.PTOP` / `MV.PSAFE`）。
-- **气泡往里收**：身边的气泡收到竖屏宽度以内，尾巴仍指向说话者。
-- **HUD 上屏**：收视率面板在竖屏里画在左上角顶栏下方；LIVE 标和 COMBO 在右上角。
-- **屏幕层排版**：论文换成竖版稿纸；FEVER 进度条和太鼓谱面挪到 HUD 下方；老虎机下移到他身上。
-- **竖屏镜头**（`src/tl_tiktok.js`）：Muse Dash 横版跑酷（48–54）推近，判定位置贴着左边缘内侧；太鼓段（64–70）拉远、下移，谱面不压头。
-- 所有竖屏分支都以 `MV.PORTRAIT` 为条件，16:9 版不受影响。
 
 ## 规则
 
@@ -156,9 +141,8 @@ src/tl_disco.js            55–63、71（翻脸、镜面舞球、休息时间�
 src/tl_tape.js             64–70（REC / REW + 太鼓）
 src/tl_finale.js           72–82（终章、老虎机、12000）
 src/tl_curtain.js          第三幕：谢幕（静默）
-src/tl_tiktok.js           竖屏版取景
 src/synth.js               程序化音效
-src/main.js                播放器、音效调度、校验、导出 API、竖屏取景
+src/main.js                播放器、音效调度、校验、导出 API
 tools/render.cjs           导出：逐帧渲染 + 混音 + 编码
 ```
 
@@ -173,9 +157,8 @@ python tools/analyze_music.py                        # music.mp3 -> src/analysis
 python tools/make_font.py                            # 新增中文后重跑 -> src/glyphs.js（宋体，需 Windows）
 python tools/fill_glyphs.py                          # 没有宋体时：用 GNU Unifont 补缺字
 node tools/check.cjs                                 # 碰撞 / 完美线 / 第一人称 / 音效名 全片校验（240 Hz）
-node tools/check.cjs --cut=tiktok                    # 同上，竖屏版
 node tools/frames.cjs work/f 12.5 40.3 --bars        # 按小节渲染若干帧（不加 --bars 则为秒）
-node tools/render.cjs [--cut=tiktok] [--gpu]         # 导出成片
+node tools/render.cjs [--gpu]                        # 导出成片
 python tools/sheet.py out.png 4 work/f/*.png         # 拼成联系表
 node tools/eval.cjs "MV.TL.rating.at(MV.T.at(81,3)).v"
 ```
