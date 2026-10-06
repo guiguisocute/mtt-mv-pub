@@ -1,0 +1,16 @@
+dist/
+node_modules/
+__pycache__/
+.venv/
+work/
+output/
+.wrangler/
+*.mp4
+*.mov
+*.webm
+*.wav
+*.zip
+*.7z
+*.log
+.env
+.env.*

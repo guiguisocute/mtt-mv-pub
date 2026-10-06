@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEATH BY GLAMOUR · Pixel MV</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; font-family: monospace; }
+  #mv { display: block; image-rendering: pixelated; background: #000; }
+  #ui { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column;
+        color: #fff; cursor: pointer; background: rgba(0,0,0,.55); letter-spacing: 2px; transition: opacity .2s; }
+  #ui.hide { opacity: 0; pointer-events: none; }
+  #ui .t { font-size: 28px; color: #ffff40; border: 3px solid #ffff40; padding: 10px 26px; }
+  #ui .s { margin-top: 14px; font-size: 12px; color: #999; }
+  #timeline { position: fixed; left: 0; right: 0; bottom: 0; height: 6px; background: #111; cursor: pointer; }
+  #bar { height: 100%; width: 0; background: #d535d9; }
+  #info { position: fixed; top: 6px; left: 8px; color: #0f0; font-size: 12px; display: none; }
+  #info.show { display: block; }
+</style>
+</head>
+<body>
+<canvas id="mv" width="1920" height="1080"></canvas>
+<audio id="audio" src="music.mp3" preload="auto"></audio>
+<div id="ui"><div class="t">♥ 行动 · PLAY</div><div class="s">SPACE / Z 播放暂停 · ←/→ 快退快进 · D 调试信息 · 点击底部进度条跳转</div></div>
+<div id="timeline"><div id="bar"></div></div>
+<div id="info"></div>
+<script src="src/analysis.js"></script>
+<script src="src/assets.js"></script>
+<script src="src/glyphs.js"></script>
+<script src="src/util.js"></script>
+<script src="src/synth.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/sprites.js"></script>
+<script src="src/draw.js"></script>
+<script src="src/scene.js"></script>
+<script src="src/post.js"></script>
+<script src="src/voxel.js"></script>
+<script src="src/timeline.js"></script>
+<script src="src/tl_prologue.js"></script>
+<script src="src/tl_reveal.js"></script>
+<script src="src/tl_show.js"></script>
+<script src="src/tl_pose.js"></script>
+<script src="src/tl_saber.js"></script>
+<script src="src/tl_muse.js"></script>
+<script src="src/tl_disco.js"></script>
+<script src="src/tl_tape.js"></script>
+<script src="src/tl_finale.js"></script>
+<script src="src/tl_curtain.js"></script>
+<script src="src/tl_tiktok.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
